@@ -2,7 +2,7 @@ name: Build Android APK
 on:
   push:
     branches:
-      - main  # Agar aapki GitHub branch master hai toh yahan 'master' likh dena
+      - main
 
 jobs:
   build:
@@ -26,22 +26,12 @@ jobs:
         env:
           BUILDOZER_WARN_ON_ROOT: 0
         run: |
-          # 1. Spec file generate karna
           buildozer init
-          
-          # 2. Pygame-ce requirement force karna
-          sed -i 's/requirements = python3,kivy/requirements = python3,pygame-ce/' buildozer.spec
-          
-          # 3. Game display orientation landscape karna
-          sed -i 's/orientation = portrait/orientation = landscape/' buildozer.spec
-          
-          # 4. Architecture arm64-v8a select karna fast build ke liye
-          sed -i 's/^#\? \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
-          
-          # 5. SDK License automatically accept karna
-          sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-          
-          # 6. Build command execute karna auto-accept inputs ke sath
+          sed -i 's/^requirements =.*/requirements = python3,pygame-ce/' buildozer.spec
+          sed -i 's/^# \?android.bootstrap =.*/android.bootstrap = sdl2/' buildozer.spec
+          sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
+          sed -i 's/^# \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
+          sed -i 's/^# \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
           yes | buildozer -v android debug
 
       - name: Upload APK

@@ -23,23 +23,23 @@ jobs:
         env:
           BUILDOZER_WARN_ON_ROOT: 0
         run: |
-          # Fresh spec file generate karna
+          # 1. Init file
           buildozer init
           
-          # Requirements aur permissions ko script ke zariye modify karna
+          # 2. Pygame-ce aur requirements set karna
           sed -i 's/requirements = python3,kivy/requirements = python3,pygame-ce/' buildozer.spec
+          
+          # 3. Game landscape hai, toh orientation fix karna
+          sed -i 's/orientation = portrait/orientation = landscape/' buildozer.spec
+          
+          # 4. Architecture handle karna (Purani line poori badalna)
+          sed -i 's/^#\? \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
+          
+          # 5. Buildozer ko auto-accept license par force karna
           sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
           
-          # Android architectures ko restrict karna taake build jaldi aur bina error ke ho
-          sed -i 's/#android.archs = arm64-v8a, armeabi-v7a/android.archs = arm64-v8a/' buildozer.spec
-          
-          # Auto-accept Android SDK licenses before build
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          
-          # Force build target android
-          buildozer -v android debug
+          # 6. Final Execution with auto 'yes' prompt input
+          yes | buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

@@ -1,5 +1,8 @@
 name: Build Android APK
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - main  # Agar aapki GitHub branch master hai toh yahan 'master' likh dena
 
 jobs:
   build:
@@ -15,7 +18,6 @@ jobs:
       - name: Install System Compilation Dependencies
         run: |
           sudo apt-get update
-          # Saare zaroori compilation tools aur SDL2 supporting libraries ek sath install karna
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev libssl-dev libbz2-dev libffi-dev liblzma-dev cmake ninja-build ccache
           pip install --upgrade pip
           pip install cython setuptools buildozer
@@ -24,22 +26,22 @@ jobs:
         env:
           BUILDOZER_WARN_ON_ROOT: 0
         run: |
-          # 1. Spec file banana
+          # 1. Spec file generate karna
           buildozer init
           
-          # 2. Pygame-ce requirement add karna
+          # 2. Pygame-ce requirement force karna
           sed -i 's/requirements = python3,kivy/requirements = python3,pygame-ce/' buildozer.spec
           
-          # 3. Orientation ko landscape par set karna (Kyunki game wide hai)
+          # 3. Game display orientation landscape karna
           sed -i 's/orientation = portrait/orientation = landscape/' buildozer.spec
           
-          # 4. Architecture sirf arm64-v8a rakhna taake jaldi build ho
+          # 4. Architecture arm64-v8a select karna fast build ke liye
           sed -i 's/^#\? \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
           
-          # 5. Licenses auto-accept force karna
+          # 5. SDK License automatically accept karna
           sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
           
-          # 6. Build execution with automated inputs
+          # 6. Build command execute karna auto-accept inputs ke sath
           yes | buildozer -v android debug
 
       - name: Upload APK
@@ -47,3 +49,4 @@ jobs:
         with:
           name: Python-Detective-APK
           path: bin/*.apk
+

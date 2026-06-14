@@ -1,42 +1,40 @@
-name: Build Android APK
+name: Build Python Detective APK
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Manually trigger bhi kar sakte hain
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install System Compilation Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev libssl-dev libbz2-dev libffi-dev liblzma-dev cmake ninja-build ccache
-          pip install --upgrade pip
-          pip install cython setuptools buildozer
-
-      - name: Build with Buildozer
-        env:
-          BUILDOZER_WARN_ON_ROOT: 0
-        run: |
-          buildozer init
-          sed -i 's/^requirements =.*/requirements = python3,pygame-ce/' buildozer.spec
-          sed -i 's/^# \?android.bootstrap =.*/android.bootstrap = sdl2/' buildozer.spec
-          sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
-          sed -i 's/^# \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
-          sed -i 's/^# \?android.accept_sdk_license =.*/android.accept_sdk_license = True/' buildozer.spec
-          yes | buildozer -v android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: Python-Detective-APK
-          path: bin/*.apk
-
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        pip install --user --upgrade buildozer cython virtualenv
+    
+    - name: Build APK with Buildozer
+      run: |
+        cd ${{ github.workspace }}
+        buildozer android debug
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-detective-apk
+        path: |
+          bin/*.apk
+          !bin/*-unsigned.apk

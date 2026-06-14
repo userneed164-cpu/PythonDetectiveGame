@@ -12,33 +12,34 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Dependencies
+      - name: Install System Compilation Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool autoconf automake pkg-config zlib1g-dev python3-dev libffi-dev libssl-dev openjdk-17-jdk
+          # Saare zaroori compilation tools aur SDL2 supporting libraries ek sath install karna
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev libssl-dev libbz2-dev libffi-dev liblzma-dev cmake ninja-build ccache
           pip install --upgrade pip
-          pip install "cython<3.0.0" setuptools buildozer kivy
+          pip install cython setuptools buildozer
 
       - name: Build with Buildozer
         env:
           BUILDOZER_WARN_ON_ROOT: 0
         run: |
-          # 1. Init file
+          # 1. Spec file banana
           buildozer init
           
-          # 2. Pygame-ce aur requirements set karna
+          # 2. Pygame-ce requirement add karna
           sed -i 's/requirements = python3,kivy/requirements = python3,pygame-ce/' buildozer.spec
           
-          # 3. Game landscape hai, toh orientation fix karna
+          # 3. Orientation ko landscape par set karna (Kyunki game wide hai)
           sed -i 's/orientation = portrait/orientation = landscape/' buildozer.spec
           
-          # 4. Architecture handle karna (Purani line poori badalna)
+          # 4. Architecture sirf arm64-v8a rakhna taake jaldi build ho
           sed -i 's/^#\? \?android.archs =.*/android.archs = arm64-v8a/' buildozer.spec
           
-          # 5. Buildozer ko auto-accept license par force karna
+          # 5. Licenses auto-accept force karna
           sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
           
-          # 6. Final Execution with auto 'yes' prompt input
+          # 6. Build execution with automated inputs
           yes | buildozer -v android debug
 
       - name: Upload APK
@@ -46,4 +47,3 @@ jobs:
         with:
           name: Python-Detective-APK
           path: bin/*.apk
-
